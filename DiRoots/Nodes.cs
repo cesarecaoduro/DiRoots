@@ -28,10 +28,6 @@ namespace DiRoots.QA
         public static  Dictionary<string, object> NodeTemplate()
         {
             string msg = "Executed";
-            Document doc = DocumentManager.Instance.CurrentDBDocument;
-            //UIApplication uiapp = DocumentManager.Instance.CurrentUIApplication;
-            //Autodesk.Revit.ApplicationServices.Application app = uiapp.Application;
-            //UIDocument uidoc = DocumentManager.Instance.CurrentUIApplication.ActiveUIDocument;
 
             try
             {
@@ -334,6 +330,71 @@ namespace DiRoots.QA
                 { "ModelGroups", obj[0]},
                 { "ModelGroupUniqueNames", obj[1]},
                 { "ScoreModelGroups", scoreMaxModelGroups },
+                { "Message", msg },
+            };
+        }
+
+
+    }
+
+    public static class Views
+    {
+        public static Document doc = DocumentManager.Instance.CurrentDBDocument;
+        public static UIApplication uiapp = DocumentManager.Instance.CurrentUIApplication;
+        public static UIDocument uidoc = DocumentManager.Instance.CurrentUIApplication.ActiveUIDocument;
+        public static Functions f = new Functions();
+
+
+        [IsVisibleInDynamoLibrary(true)]
+        [CanUpdatePeriodically(true)]
+        [MultiReturn(new[] { "StructuralPlan", "CrossSection", "FloorPlan", "CeilingPlan", "BuildingElevation", "3DView", "Detail", "Legend","Schedules", "TotalNumber", "Message" })]
+        public static Dictionary<string, object> GetProjectViewsByType()
+        {
+            string msg = "Executed";
+            List<Revit.Elements.Element> structuralPlans = new List<Revit.Elements.Element>();
+            List<Revit.Elements.Element> crossSection = new List<Revit.Elements.Element>();
+            List<Revit.Elements.Element> floorPlan = new List<Revit.Elements.Element>();
+            List<Revit.Elements.Element> ceilingPlan = new List<Revit.Elements.Element>();
+            List<Revit.Elements.Element> buildingElevation = new List<Revit.Elements.Element>();
+            List<Revit.Elements.Element> treDView = new List<Revit.Elements.Element>();
+            List<Revit.Elements.Element> details = new List<Revit.Elements.Element>();
+            List<Revit.Elements.Element> legends = new List<Revit.Elements.Element>();
+            List<Revit.Elements.Element> schedule = new List<Revit.Elements.Element>();
+            int tot = 0;
+
+            try
+            {
+                FilteredElementCollector coll = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Views).WhereElementIsNotElementType();
+                tot = coll.Count();
+                foreach (View v in coll)
+                {
+                    ViewType vT = v.ViewType;
+                    switch (vT)
+                    {
+                        case ViewType.CeilingPlan: ceilingPlan.Add(v.ToDSType(true)); break;
+                        case ViewType.Elevation: buildingElevation.Add(v.ToDSType(true)); break;
+                        case ViewType.Schedule: schedule.Add(v.ToDSType(true)); break;
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                msg = "Error: " + ex.Message;
+            }
+
+            return new Dictionary<string, object>
+            {
+                { "StructuralPlan", structuralPlans },
+                { "CrossSection", crossSection },
+                { "FloorPlan", floorPlan },
+                { "CeilingPlan", ceilingPlan },
+                { "BuildingElevation", buildingElevation },
+                { "3DView", treDView },
+                { "Detail", details },
+                { "Legend", legends },
+                { "Schedule", schedule },
+                { "TotalNumber", tot },
                 { "Message", msg },
             };
         }
