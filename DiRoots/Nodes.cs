@@ -344,38 +344,77 @@ namespace DiRoots.QA
         public static UIDocument uidoc = DocumentManager.Instance.CurrentUIApplication.ActiveUIDocument;
         public static Functions f = new Functions();
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         [IsVisibleInDynamoLibrary(true)]
         [CanUpdatePeriodically(true)]
-        [MultiReturn(new[] { "StructuralPlan", "CrossSection", "FloorPlan", "CeilingPlan", "BuildingElevation", "3DView", "Detail", "Legend","Schedules", "TotalNumber", "Message" })]
+        [MultiReturn(new[] { "FloorPlan", "StructuralPlan", "CeilingPlan", "3D", "Section", "Elevation", "DraftingView", "Legend", "Detail", "Schedule", "Viewports", "TotalNumber", "ViewsOnSheet", "Message" })]
         public static Dictionary<string, object> GetProjectViewsByType()
         {
             string msg = "Executed";
-            List<Revit.Elements.Element> structuralPlans = new List<Revit.Elements.Element>();
-            List<Revit.Elements.Element> crossSection = new List<Revit.Elements.Element>();
             List<Revit.Elements.Element> floorPlan = new List<Revit.Elements.Element>();
             List<Revit.Elements.Element> ceilingPlan = new List<Revit.Elements.Element>();
-            List<Revit.Elements.Element> buildingElevation = new List<Revit.Elements.Element>();
-            List<Revit.Elements.Element> treDView = new List<Revit.Elements.Element>();
-            List<Revit.Elements.Element> details = new List<Revit.Elements.Element>();
+            List<Revit.Elements.Element> draftingView = new List<Revit.Elements.Element>();
+            List<Revit.Elements.Element> sections = new List<Revit.Elements.Element>();
+            List<Revit.Elements.Element> structuralPlan = new List<Revit.Elements.Element>();
+            List<Revit.Elements.Element> elevations = new List<Revit.Elements.Element>();
             List<Revit.Elements.Element> legends = new List<Revit.Elements.Element>();
-            List<Revit.Elements.Element> schedule = new List<Revit.Elements.Element>();
+            List<Revit.Elements.Element> schedules = new List<Revit.Elements.Element>();
+            List<Revit.Elements.Element> threeD = new List<Revit.Elements.Element>();
+            List<Revit.Elements.Element> viewports = new List<Revit.Elements.Element>();
+            List<Revit.Elements.Element> details = new List<Revit.Elements.Element>();
             int tot = 0;
 
             try
             {
-                FilteredElementCollector coll = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Views).WhereElementIsNotElementType();
-                tot = coll.Count();
+                ElementClassFilter filterView = new ElementClassFilter(typeof(View));
+                ElementClassFilter filterSchedule = new ElementClassFilter(typeof(ViewSchedule));
+                IList<ElementFilter> filters = new List<ElementFilter> { filterView, filterSchedule };
+
+                LogicalOrFilter orFilter = new LogicalOrFilter(filters);
+
+                FilteredElementCollector coll = new FilteredElementCollector(doc).WherePasses(orFilter).WhereElementIsNotElementType();
                 foreach (View v in coll)
                 {
-                    ViewType vT = v.ViewType;
-                    switch (vT)
+                    if (!v.IsTemplate)
                     {
-                        case ViewType.CeilingPlan: ceilingPlan.Add(v.ToDSType(true)); break;
-                        case ViewType.Elevation: buildingElevation.Add(v.ToDSType(true)); break;
-                        case ViewType.Schedule: schedule.Add(v.ToDSType(true)); break;
+                        ViewType vT = v.ViewType;
+                        switch (vT)
+                        {
+                            case ViewType.FloorPlan: floorPlan.Add(v.ToDSType(true)); tot++; break;
+                            case ViewType.CeilingPlan: ceilingPlan.Add(v.ToDSType(true)); tot++; break;
+                            case ViewType.Section: sections.Add(v.ToDSType(true)); tot++; break;
+                            case ViewType.Elevation: elevations.Add(v.ToDSType(true)); tot++; break;
+                            case ViewType.EngineeringPlan: structuralPlan.Add(v.ToDSType(true)); tot++; break;
+                            case ViewType.DraftingView: draftingView.Add(v.ToDSType(true)); tot++; break;
+                            case ViewType.Legend: legends.Add(v.ToDSType(true)); tot++; break;
+                            case ViewType.Schedule: schedules.Add(v.ToDSType(true)); tot++; break;
+                            case ViewType.Detail: details.Add(v.ToDSType(true)); tot++; break;
+                                
+                        }
+                        
                     }
                 }
+
+                FilteredElementCollector viewp = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Viewports).WhereElementIsNotElementType();
+                foreach (Viewport c in viewp)
+                {
+                    viewports.Add(c.ToDSType(true));
+                }
+
+                FilteredElementCollector sheets = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Sheets).WhereElementIsNotElementType();
+                foreach (ViewSheet c in sheets)
+                {
+                    FilteredElementCollector sched = new FilteredElementCollector(doc, c.Id).OfClass(typeof(ScheduleSheetInstance)).WhereElementIsNotElementType();
+                    foreach (ScheduleSheetInstance s in sched)
+                    {
+                        viewports.Add(doc.GetElement(s.ScheduleId).ToDSType(true));
+
+                    }
+                }
+
 
             }
             catch (Exception ex)
@@ -385,16 +424,20 @@ namespace DiRoots.QA
 
             return new Dictionary<string, object>
             {
-                { "StructuralPlan", structuralPlans },
-                { "CrossSection", crossSection },
+
                 { "FloorPlan", floorPlan },
+                { "StructuralPlan", structuralPlan },
                 { "CeilingPlan", ceilingPlan },
-                { "BuildingElevation", buildingElevation },
-                { "3DView", treDView },
-                { "Detail", details },
+                { "3D", threeD },
+                { "Section", sections },
+                { "Elevation", elevations },
+                { "DraftingView", draftingView },
                 { "Legend", legends },
-                { "Schedule", schedule },
+                { "Detail", details },
+                { "Schedule", schedules },
+                { "Viewports", viewports },
                 { "TotalNumber", tot },
+                { "ViewsOnSheet", viewports.Count },
                 { "Message", msg },
             };
         }
