@@ -18,7 +18,7 @@ namespace DiRoots
         public double mb = 1048576.0;
         public double kb = 1024.0;
 
-        [IsVisibleInDynamoLibrary(false)]
+        [IsVisibleInDynamoLibrary(true)]
         public double GetInverseScore(double f, double tot, double maxScore)
         {
             double percentage = f * 100 / tot;
@@ -26,7 +26,7 @@ namespace DiRoots
             return score;
         }
 
-        [IsVisibleInDynamoLibrary(false)]
+        [IsVisibleInDynamoLibrary(true)]
         public double GetScore(double f, double tot, double maxScore)
         {
             double percentage = f * 100 / tot;
@@ -34,9 +34,5 @@ namespace DiRoots
             return score;
         }
 
-        internal double GetInverseScore(object count, double maxDetailGroup, double maxScore)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
