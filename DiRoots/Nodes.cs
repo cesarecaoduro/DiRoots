@@ -12,6 +12,7 @@ using DiRoots;
 using Revit.Elements;
 using DSCore;
 using System.Collections;
+using Dynamo.Graph.Nodes;
 
 namespace DiRoots.QA
 {
@@ -442,6 +443,167 @@ namespace DiRoots.QA
             };
         }
 
+
+    }
+
+    public static class Alerts
+    {
+        public static Document doc = DocumentManager.Instance.CurrentDBDocument;
+        public static UIApplication uiapp = DocumentManager.Instance.CurrentUIApplication;
+        public static UIDocument uidoc = DocumentManager.Instance.CurrentUIApplication.ActiveUIDocument;
+        public static Functions f = new Functions();
+
+        [IsVisibleInDynamoLibrary(true)]
+        [MultiReturn(new[] { "FailureMessageDescription", "FailureSeverity", "FailingElements" })]
+        [CanUpdatePeriodically(true)]
+        public static Dictionary<string, object> GetWarnings()
+        {
+            string msg = "Executed";
+            IList<Autodesk.Revit.DB.FailureMessage> fMessages = doc.GetWarnings();
+            List<string> failureDescription = new List<string>();
+            List<List<Revit.Elements.Element>> failingElements = new List<List<Revit.Elements.Element>>();
+            List<string> failureSeverity = new List<string>();
+
+            try
+            {
+                foreach (Autodesk.Revit.DB.FailureMessage f in fMessages)
+                {
+                    List<Revit.Elements.Element> el = new List<Revit.Elements.Element>();
+                    failureDescription.Add(f.GetDescriptionText());
+                    ICollection<ElementId> elements = f.GetFailingElements();
+                    foreach (ElementId e in elements)
+                    {
+                        el.Add(doc.GetElement(e).ToDSType(true));
+                    }
+                    failureSeverity.Add(f.GetSeverity().ToString());
+                    failingElements.Add(el);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                msg = "Error: " + ex.Message;
+            }
+
+            return new Dictionary<string, object>
+            {
+                { "FailureMessageDescription", failureDescription },
+                { "FailureSeverity", failureSeverity },
+                { "FailingElements", failingElements },
+                { "Message", msg },
+            };
+        }
+
+    }
+
+    public static class Parameters
+    {
+        public static Document doc = DocumentManager.Instance.CurrentDBDocument;
+        public static UIApplication uiapp = DocumentManager.Instance.CurrentUIApplication;
+        public static UIDocument uidoc = DocumentManager.Instance.CurrentUIApplication.ActiveUIDocument;
+        public static Functions f = new Functions();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ParameterList"></param>
+        /// <param name="MaxScore"></param>
+        /// <returns></returns>
+        [IsVisibleInDynamoLibrary(true)]
+        [CanUpdatePeriodically(true)]
+        [MultiReturn(new[] { "ParameterFound", "ParameterNotFound", "TotalCheckedParameters", "TotalFoundParameters", "TotalNotFoundParameters", "ParameterElements", "Score" })]
+        public static Dictionary<string, object> CheckListOfParameters(List<string> ParameterList, double MaxScore = 5)
+        {
+            string msg = "Executed";
+            List<string> parameterFound = new List<string>();
+            List<string> parameterNotFound = new List<string>();
+            int totalCheckedParameter = ParameterList.Count;
+            int totalFoundParameter = 0;
+            int totalNotFoundParameter = 0;
+            List<ParameterElement> parameterElement = new List<ParameterElement>();
+            double score = -1;
+
+            try
+            {
+                FilteredElementCollector paramElement = new FilteredElementCollector(doc).OfClass(typeof(ParameterElement));
+                foreach (string  s in ParameterList)
+                {
+                    bool found = false;
+                    foreach (ParameterElement p in paramElement)
+                    {
+                        if (s == p.Name)
+                        {
+                            found = true;
+                            parameterElement.Add(p);
+                        }
+                    }
+                    if (found)
+                    {
+                        parameterFound.Add(s);
+                        totalFoundParameter++;
+                    }
+                    else
+                    {
+                        parameterNotFound.Add(s);
+                        totalNotFoundParameter++;
+                    }
+                }
+                score = f.GetScore(totalFoundParameter, totalCheckedParameter, MaxScore);
+            }
+            catch (Exception ex)
+            {
+                msg = "Error: " + ex.Message;
+            }
+
+            return new Dictionary<string, object>
+            {
+                { "ParameterFound", parameterFound },
+                { "ParameterNotFound", parameterNotFound },
+                { "TotalCheckedParameters", totalCheckedParameter },
+                { "TotalFoundParameters", totalFoundParameter },
+                { "TotalNotFoundParameters", totalNotFoundParameter },
+                { "ParameterElements", parameterElement },
+                { "Score", score },
+                { "Message", msg },
+            };
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ParameterList"></param>
+        /// <param name="MaxScore"></param>
+        /// <returns></returns>
+        [IsVisibleInDynamoLibrary(false)]
+        [CanUpdatePeriodically(true)]
+        [MultiReturn(new[] { "ParameterFound", "Score"})]
+        public static Dictionary<string, object> CheckParametersBinding(List<ParameterElement> ParameterElements, List<List<string>> CategoriesList, double MaxScore = 5)
+        {
+            string msg = "Executed";
+            double score = -1;
+            BindingMap bindings = doc.ParameterBindings;
+
+            for (int i = 0; i < ParameterElements.Count; i++)
+            {
+                Definition def =  ParameterElements[i].GetDefinition();
+                bindings.get_Item(def);
+            }
+
+            try
+            {
+               
+            }
+            catch (Exception ex)
+            {
+                msg = "Error: " + ex.Message;
+            }
+
+            return new Dictionary<string, object>
+            {
+                { "Score", score },
+                { "Message", msg },
+            };
+        }
 
     }
 }
