@@ -22,6 +22,9 @@ using RevitServices.Transactions;
 
 namespace DiRoots.Structural
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public static class Query
     {
         public static Document doc = DocumentManager.Instance.CurrentDBDocument;
@@ -178,8 +181,12 @@ namespace DiRoots.Structural
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="Host"></param>
         /// <param name="Path"></param>
         /// <param name="PolyCurve"></param>
+        /// <param name="DistanceFromStart"></param>
+        /// <param name="DistanceFromEnd"></param>
+        /// <param name="DistanceBetweenRebars"></param>
         /// <returns></returns>
         [IsVisibleInDynamoLibrary(true)]
         [MultiReturn(new[] { "Distances", "Parameters", "Points", "CoordinateSystems", "Shapes" })]
@@ -270,12 +277,12 @@ namespace DiRoots.Structural
             ElementId hostId = new ElementId(Host.Id);
             Autodesk.Revit.DB.Element h = doc.GetElement(hostId);
 
-
-            RebarBarType rebType = doc.GetElement(RebarBarType.UniqueId.ToString()) as RebarBarType;
+            RebarBarType rebType = RebarBarType.InternalElement as RebarBarType;
             RebarHookType startHook = RebarHookTypeAtStart.InternalElement as RebarHookType;
             RebarHookType endHook = RebarHookTypeAtEnd.InternalElement as RebarHookType;
             RebarHookOrientation rebHookOrStart, rebHookOrEnd;
             RebarStyle rebStyle;
+
             if (RebarStyle == "Standard") { rebStyle = Autodesk.Revit.DB.Structure.RebarStyle.Standard; } else { rebStyle = Autodesk.Revit.DB.Structure.RebarStyle.StirrupTie; } 
             List<List<Autodesk.Revit.DB.Curve>> revitCurves = new List<List<Autodesk.Revit.DB.Curve>>();
 
@@ -288,14 +295,13 @@ namespace DiRoots.Structural
                 string str = "";
                 foreach (var p in PolyCurves)
                 {
-                    XYZ normal = Revit.GeometryConversion.GeometryPrimitiveConverter.ToRevitType(p.Normal);
+                    XYZ normal = GeometryPrimitiveConverter.ToRevitType(p.Normal);
                     var curves = p.Curves();
                     List<Autodesk.Revit.DB.Curve> convCurves = new List<Autodesk.Revit.DB.Curve>();
 
                     foreach (var c in curves)
                     {
-                        convCurves.Add(Revit.GeometryConversion.ProtoToRevitCurve.ToRevitType(c));
-                        //revitCurves.Add(c.ApproximateWithArcAndLineSegments());
+                        convCurves.Add(ProtoToRevitCurve.ToRevitType(c));
                         str += c.ToString();
                     }
                     try
@@ -328,7 +334,6 @@ namespace DiRoots.Structural
                     }
                     revitCurves.Add(convCurves);
                 }
-                TaskDialog.Show("Msg", str);
             }
             catch (Exception ex)
             {

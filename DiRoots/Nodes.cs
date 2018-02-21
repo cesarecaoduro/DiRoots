@@ -170,7 +170,7 @@ namespace DiRoots.QA
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="MaxCADInstances"></param>
+        /// <param name="MaxFileDimension"></param>
         /// <param name="MaxScore"></param>
         /// <returns></returns>
         [IsVisibleInDynamoLibrary(true)]
@@ -571,7 +571,8 @@ namespace DiRoots.QA
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="ParameterList"></param>
+        /// <param name="ParameterElements"></param>
+        /// <param name="CategoriesList"></param>
         /// <param name="MaxScore"></param>
         /// <returns></returns>
         [IsVisibleInDynamoLibrary(false)]
