@@ -1,9 +1,14 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2024
+VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiRoots", "DiRoots\DiRoots.csproj", "{37DBFF1E-788D-4275-B3B8-CDD527D6EE7A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{280586A3-FC5D-4D13-831C-380D92846D3E} = {280586A3-FC5D-4D13-831C-380D92846D3E}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiRootsUI", "DiRootsUI\DiRootsUI.csproj", "{280586A3-FC5D-4D13-831C-380D92846D3E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +20,10 @@ Global
 		{37DBFF1E-788D-4275-B3B8-CDD527D6EE7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{37DBFF1E-788D-4275-B3B8-CDD527D6EE7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{37DBFF1E-788D-4275-B3B8-CDD527D6EE7A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{280586A3-FC5D-4D13-831C-380D92846D3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{280586A3-FC5D-4D13-831C-380D92846D3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{280586A3-FC5D-4D13-831C-380D92846D3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{280586A3-FC5D-4D13-831C-380D92846D3E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

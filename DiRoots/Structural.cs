@@ -12,8 +12,9 @@ using Revit.Elements.Views;
 using Revit.GeometryConversion;
 using RevitServices.Transactions;
 using Autodesk.DesignScript.Geometry;
+using DiRoots;
 
-namespace DiRoots.Structural
+namespace Structural
 {
     /// <summary>
     /// 

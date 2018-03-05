@@ -14,7 +14,7 @@ using DSCore;
 using System.Collections;
 using Dynamo.Graph.Nodes;
 
-namespace DiRoots.QA
+namespace QA
 {
     public static class Documents
     {
